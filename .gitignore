@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/*.duckdb*
+*.duckdb*
+
+# Environment
+.env
+*.log
+
+# Docker
+*.pid
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Data files (don't commit large datasets)
+*.csv
+*.parquet
+data/*.duckdb*
+
+# Temporary files
+/tmp/
+*.tmp

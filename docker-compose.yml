@@ -1,0 +1,79 @@
+services:
+  postgres-source:
+    image: postgres:15
+    container_name: taskflow-production-db
+    environment:
+      POSTGRES_USER: taskflow
+      POSTGRES_PASSWORD: taskflow_prod_pass
+      POSTGRES_DB: taskflow_production
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-source-data:/var/lib/postgresql/data
+    networks:
+      - data-stack
+
+  airbyte-db:
+    image: postgres:15
+    container_name: airbyte-db
+    environment:
+      POSTGRES_USER: airbyte
+      POSTGRES_PASSWORD: airbyte_pass
+      POSTGRES_DB: airbyte
+    ports:
+      - "5433:5432"
+    volumes:
+      - airbyte-db-data:/var/lib/postgresql/data
+    networks:
+      - data-stack
+
+  postgres-metabase:
+    image: postgres:15
+    container_name: metabase-db
+    environment:
+      POSTGRES_USER: metabase
+      POSTGRES_PASSWORD: metabase_pass
+      POSTGRES_DB: metabase
+    volumes:
+      - metabase-data:/var/lib/postgresql/data
+    networks:
+      - data-stack
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: taskflow-metabase
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: 5432
+      MB_DB_USER: metabase
+      MB_DB_PASS: metabase_pass
+      MB_DB_HOST: postgres-metabase
+      MB_PLUGINS_DIR: /plugins
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./metabase-plugins:/plugins:ro
+      - ./dbt:/dbt:ro
+    networks:
+      - data-stack
+    depends_on:
+      - postgres-metabase
+
+  mock-stripe-api:
+    build: ./mock-apis
+    container_name: mock-stripe-api
+    ports:
+      - "5001:5001"
+    networks:
+      - data-stack
+    restart: unless-stopped
+
+volumes:
+  postgres-source-data:
+  metabase-data:
+  airbyte-db-data:
+
+networks:
+  data-stack:
+    driver: bridge

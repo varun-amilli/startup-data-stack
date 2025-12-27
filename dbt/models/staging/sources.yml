@@ -1,0 +1,26 @@
+version: 2
+
+sources:
+  - name: taskflow
+    description: TaskFlow production database
+    database: taskflow_production
+    schema: public
+    tables:
+      - name: users
+        description: User accounts
+      - name: subscriptions
+        description: User subscriptions
+      - name: events
+        description: Product usage events
+      - name: stripe_charges
+        description: Payment transactions
+
+  - name: stripe
+    description: Stripe payment data from mock API
+    database: taskflow_production
+    schema: stripe
+    tables:
+      - name: customers
+      - name: subscriptions
+      - name: charges
+      - name: invoices
