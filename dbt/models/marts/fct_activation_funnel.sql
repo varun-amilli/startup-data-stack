@@ -2,14 +2,33 @@ WITH users AS (
     SELECT * FROM {{ ref('stg_users') }}
 ),
 
+stripe_customers AS (
+    SELECT * FROM {{ ref('stg_stripe_customers') }}
+),
+
+stripe_subscriptions AS (
+    SELECT * FROM {{ ref('stg_stripe_subscriptions') }}
+),
+
+user_payment_status AS (
+    SELECT 
+        u.user_id,
+        MAX(CASE WHEN ss.is_active THEN 1 ELSE 0 END) AS has_paid_subscription
+    FROM users u
+    LEFT JOIN stripe_customers sc ON LOWER(u.email) = LOWER(sc.email)
+    LEFT JOIN stripe_subscriptions ss ON sc.stripe_customer_id = ss.stripe_customer_id
+    GROUP BY u.user_id
+),
+
 daily_signups AS (
     SELECT
         DATE_TRUNC('day', signup_at)::DATE AS signup_date,
         COUNT(*) AS signups,
         SUM(CASE WHEN is_activated THEN 1 ELSE 0 END) AS activated,
-        SUM(CASE WHEN plan IS NOT NULL THEN 1 ELSE 0 END) AS converted_to_paid,
+        SUM(CASE WHEN p.has_paid_subscription = 1 THEN 1 ELSE 0 END) AS converted_to_paid,
         AVG(days_to_activate) FILTER (WHERE is_activated) AS avg_days_to_activate
-    FROM users
+    FROM users u
+    LEFT JOIN user_payment_status p ON u.user_id = p.user_id
     GROUP BY DATE_TRUNC('day', signup_at)::DATE
 )
 

@@ -3,6 +3,7 @@ from flask_cors import CORS
 from datetime import datetime, timedelta
 import random
 import hashlib
+import psycopg2
 
 app = Flask(__name__)
 CORS(app)
@@ -10,26 +11,82 @@ CORS(app)
 # Seed for consistent data
 random.seed(42)
 
-# Generate consistent fake data
-def generate_customers(count=200):
+# Get real user emails from TaskFlow database
+def get_taskflow_user_emails():
+    """Pull activated user emails from TaskFlow to create realistic matches"""
+    try:
+        conn = psycopg2.connect(
+            host="taskflow-production-db",
+            port=5432,
+            database="taskflow_production",
+            user="taskflow",
+            password="taskflow_prod_pass",
+            connect_timeout=5
+        )
+        cur = conn.cursor()
+        
+        # Get activated users (40% of them will become Stripe customers)
+        cur.execute("""
+            SELECT email, name, company 
+            FROM users 
+            WHERE activated_at IS NOT NULL 
+            ORDER BY RANDOM() 
+            LIMIT 200
+        """)
+        
+        results = cur.fetchall()
+        cur.close()
+        conn.close()
+        
+        return [(email, name, company) for email, name, company in results]
+    except Exception as e:
+        print(f"Warning: Could not connect to TaskFlow DB: {e}")
+        print("Falling back to generated emails")
+        return None
+
+# Generate customers using TaskFlow emails
+def generate_customers():
     customers = []
     base_date = datetime(2025, 1, 1)
     
-    for i in range(count):
-        created = base_date + timedelta(days=random.randint(0, 180))
-        customers.append({
-            'id': f'cus_{hashlib.md5(str(i).encode()).hexdigest()[:24]}',
-            'object': 'customer',
-            'email': f'customer{i}@example.com',
-            'name': f'Customer {i}',
-            'created': int(created.timestamp()),
-            'currency': 'usd',
-            'delinquent': False,
-            'metadata': {
-                'company': random.choice(['Acme Corp', 'Tech Inc', 'StartupXYZ', 'Innovate LLC']),
-                'industry': random.choice(['SaaS', 'E-commerce', 'Consulting', 'Agency'])
-            }
-        })
+    # Try to get real TaskFlow emails
+    taskflow_users = get_taskflow_user_emails()
+    
+    if taskflow_users:
+        # Use real TaskFlow user data
+        for i, (email, name, company) in enumerate(taskflow_users[:200]):
+            created = base_date + timedelta(days=random.randint(0, 180))
+            customers.append({
+                'id': f'cus_{hashlib.md5(email.encode()).hexdigest()[:24]}',
+                'object': 'customer',
+                'email': email,
+                'name': name or f'Customer {i}',
+                'created': int(created.timestamp()),
+                'currency': 'usd',
+                'delinquent': False,
+                'metadata': {
+                    'company': company or 'Unknown',
+                    'industry': random.choice(['SaaS', 'E-commerce', 'Consulting', 'Agency'])
+                }
+            })
+    else:
+        # Fallback to generated data
+        for i in range(200):
+            created = base_date + timedelta(days=random.randint(0, 180))
+            customers.append({
+                'id': f'cus_{hashlib.md5(str(i).encode()).hexdigest()[:24]}',
+                'object': 'customer',
+                'email': f'customer{i}@example.com',
+                'name': f'Customer {i}',
+                'created': int(created.timestamp()),
+                'currency': 'usd',
+                'delinquent': False,
+                'metadata': {
+                    'company': f'Company {i}',
+                    'industry': random.choice(['SaaS', 'E-commerce', 'Consulting', 'Agency'])
+                }
+            })
+    
     return customers
 
 def generate_subscriptions(customers):
@@ -88,7 +145,6 @@ def generate_charges(subscriptions):
             # 95% success rate
             status = 'succeeded' if random.random() < 0.95 else 'failed'
             
-            # Fix: Use string concatenation instead of nested f-string
             charge_id_base = sub['id'] + str(charge_num)
             charge_hash = hashlib.md5(charge_id_base.encode()).hexdigest()[:24]
             
@@ -122,7 +178,6 @@ def generate_invoices(subscriptions):
         current = created
         invoice_num = 0
         while current < end_date:
-            # Fix: Use string concatenation instead of nested f-string
             invoice_id_base = sub['id'] + str(invoice_num)
             invoice_hash = hashlib.md5(invoice_id_base.encode()).hexdigest()[:24]
             
@@ -146,7 +201,8 @@ def generate_invoices(subscriptions):
     return invoices
 
 # Generate all data once at startup
-CUSTOMERS = generate_customers(200)
+print("Generating Stripe data from TaskFlow users...")
+CUSTOMERS = generate_customers()
 SUBSCRIPTIONS = generate_subscriptions(CUSTOMERS)
 CHARGES = generate_charges(SUBSCRIPTIONS)
 INVOICES = generate_invoices(SUBSCRIPTIONS)
@@ -157,7 +213,6 @@ def list_customers():
     limit = int(request.args.get('limit', 100))
     starting_after = request.args.get('starting_after', None)
     
-    # Simple pagination
     start_idx = 0
     if starting_after:
         for idx, cust in enumerate(CUSTOMERS):
