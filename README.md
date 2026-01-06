@@ -1,610 +1,293 @@
-# 💼 Production-Ready Data Stack for SaaS Startups
+# 💼 Fully-Containerized, Production-Ready Data Stack for SaaS Startups
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?logo=postgresql)](https://www.postgresql.org/)
 [![dbt](https://img.shields.io/badge/dbt-1.11-FF694B?logo=dbt)](https://www.getdbt.com/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)](https://www.docker.com/)
+[![Metabase](https://img.shields.io/badge/Metabase-0.57.6-509EE3?logo=metabase)](https://www.metabase.com/)
 
-A complete, production-grade analytics infrastructure demonstrating modern data engineering practices. Built to showcase real-world SaaS data pipeline architecture with separation of application data and payment processing.
+Newly-created startups are like baby gazelles, deposited unceremoniously on the savannah with the clock ticking. You have to learn to stand up and run as quickly as possible, or you're lunch. 
 
-**Live Cost:** $0 (locally-hosted development) | **Production Cost:** ~$30-75/month (Airbyte, DigitalOcean droplet)
+You've got users signing up, revenue coming in, and maybe you're even collecting event data, but at the same time your team is limping along on Google Sheets, exporting CSVs, and manually calculating metrics for leadership.
 
----
+If this is you, you need a rudimentary data stack - functional, accurate and cheap - and you need it now. 
 
-## 🎯 Project Overview
 
-This project demonstrates a **realistic SaaS data architecture** where:
-- **Application database** (TaskFlow) manages user identity and product usage
-- **Payment processor** (Stripe) handles all billing and subscriptions
-- **Data warehouse** combines both sources for complete analytics
-- **Business intelligence** provides actionable insights through dashboards
+# The Typical "Solutions" (That Don't Work)
 
-**What makes this realistic:**
-- ✅ Mirrors production SaaS architecture (Stripe for payments, separate from app DB)
-- ✅ Shows real-world data integration patterns
-- ✅ Implements dimensional modeling best practices
-- ✅ Includes automated data pipelines and transformations
+❌ **Hire a data team** - You're pre-Series B. You can't afford $300K+ for engineers + analysts  
+❌ **Buy expensive SaaS tools** - Segment ($120K/year) + Looker ($60K/year) + Fivetran ($30K/year) = $210K before you've answered a single question  
+❌ **Wait until later** - Meanwhile, you're burning cash on marketing channels that don't convert and missing your best growth levers
 
----
 
-## 🏗️ Architecture
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        USER ACTIONS                             │
-└────────────┬────────────────────────────┬───────────────────────┘
-             │                            │
-             ▼                            ▼
-  ┌──────────────────────┐    ┌──────────────────────┐
-  │   TaskFlow App DB    │    │   Mock Stripe API    │
-  │    (PostgreSQL)      │    │      (Flask)         │
-  │                      │    │                      │
-  │ Manages:             │    │ Manages:             │
-  │ • User accounts      │    │ • Subscriptions      │
-  │ • Authentication     │    │ • Payments           │
-  │ • Product events     │    │ • Invoices           │
-  │ • Feature usage      │    │ • Customer records   │
-  └──────────┬───────────┘    └──────────┬───────────┘
-             │                           │
-             │                           │ Automated Sync
-             │                           │ (Python Script)
-             │                           │ Every 6 hours
-             ▼                           ▼
-  ┌─────────────────────────────────────────────────┐
-  │         PostgreSQL Data Warehouse               │
-  │                                                 │
-  │  ┌──────────────┐        ┌──────────────┐       │
-  │  │public schema │        │stripe schema │       │
-  │  │              │        │              │       │
-  │  │ • users      │        │ • customers  │       │
-  │  │ • events     │        │ • subs       │       │
-  │  └──────────────┘        │ • charges    │       │
-  │                          │ • invoices   │       │
-  │                          └──────────────┘       │
-  └──────────────────┬──────────────────────────────┘
-                     │
-                     │ dbt transformations
-                     │ (nightly via cron)
-                     ▼
-  ┌─────────────────────────────────────────────────┐
-  │        analytics schema (dbt models)            │
-  │                                                 │
-  │  Staging Layer (6 models):                      │
-  │  • stg_users, stg_events                        │
-  │  • stg_stripe_customers, stg_stripe_subs        │
-  │                                                 │
-  │  Marts Layer (4 models):                        │
-  │  • fct_user_metrics (user behavior + revenue)   │
-  │  • fct_mrr_by_month (revenue trends)            │
-  │  • fct_activation_funnel (conversion)           │
-  │  • fct_revenue_attribution (user journey)       │
-  └──────────────────┬──────────────────────────────┘
-                     │
-                     │ SQL queries
-                     ▼
-  ┌─────────────────────────────────────────────────┐
-  │              Metabase Dashboards                │
-  │                                                 │
-  │ • Executive Summary                             │
-  └─────────────────────────────────────────────────┘
-```
+## What This Project Gives You (Today)
 
----
+!(/assets/images/dashboard1.png)
 
-## 📊 Features & Capabilities
+**A complete, production-ready data stack, complete with visualizations.**
 
-### Data Sources
-- **500 realistic users** with signup dates spanning 6 months
-- **355 activated users** (71% activation rate)
-- **9,396 product events** tracking feature usage
-- **200 Stripe customers** synced from mock API
-- **80 active subscriptions** across 3 pricing tiers
-- **679 payment transactions** with 95%+ success rate
+!(/assets/images/dashboard2.png)
 
-### Analytics Models
-- **10 dbt models** (6 staging, 4 marts)
-- **Dimensional modeling** with proper staging → marts layers
-- **Incremental materializations** for performance
-- **Data quality tests** built into dbt
-- **Documentation** auto-generated with dbt docs
+✅ **Runs in 15 minutes** - `docker compose up -d` and you're live  
+✅ **Costs $0** - Everything is open-source (PostgreSQL, dbt, Metabase)  
+✅ **Answers real questions** - Pre-built metrics for activation, conversion, MRR, cohorts, LTV  
+✅ **Works with your tools** - Grabs your raw data from Google Sheets, pulls payments from a mocked-up Stripe API, and builds you a data warehouse
+✅ **Scales with you** - From 500 to 500K users without rewriting
 
-### Business Metrics
-- **Monthly Recurring Revenue (MRR)** - $12K+ from Stripe
-- **Activation Rate** - 71% of signups activate
-- **Conversion to Paid** - 40% of activated users subscribe
-- **Engagement Scoring** - High/Medium/Low based on usage
-- **Payment Success Rate** - 95%+ transaction success
-- **Revenue Attribution** - Which features drive conversions
-- **Cohort Analysis** - Retention by signup month
-- **ARPU by Plan** - Average revenue per user
+!(/assets/images/dashboard3.png)
 
----
+Employs modern data engineering practices. Built to showcase real-world SaaS data pipeline architecture with separation of application data and payment processing. Designed, constructed, and iteratively upgraded over 4 days with Claude.ai.
 
-## 🛠️ Technologies Used
+**Live Cost:** $0 (locally-hosted development) | **Production Cost:** ~$30-75/month (Airbyte API connectors, DigitalOcean droplet)
 
-### Data Infrastructure
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **PostgreSQL** | 15 | Application database & data warehouse |
-| **dbt Core** | 1.11 | SQL-based transformations |
-| **Docker Compose** | V2 | Container orchestration |
-| **Python** | 3.10+ | Data generation & sync scripts |
-| **Flask** | 3.0 | Mock Stripe REST API |
+**Everything runs in Docker containers** - just `docker compose up -d` and you're done.
 
-### Data Stack Components
-| Layer | Technology | Why This Choice |
-|-------|------------|-----------------|
-| **Storage** | PostgreSQL with schemas | Cost-effective, supports <100GB easily |
-| **Ingestion** | Python scripts (simulating Airbyte) | Demonstrates API integration skills |
-| **Transformation** | dbt Core | Industry standard, version controlled |
-| **Visualization** | Metabase (self-hosted) | Free, powerful, easy to use |
-| **Orchestration** | Cron jobs | Simple scheduling for small scale |
-
-### Python Dependencies
-```
-psycopg2-binary==2.9.9    # PostgreSQL adapter
-faker==39.0.0             # Realistic test data generation
-pandas==2.3.3             # Data manipulation
-requests==2.31.0          # HTTP client for API calls
-flask==3.0.0              # Mock API server
-flask-cors==4.0.0         # CORS support for API
-```
-
----
-
-## 🚀 Quick Start Guide
-
-### Prerequisites
+## Get Started
 ```bash
-# Required software
-- Docker Desktop or Docker Engine + Docker Compose V2
-- Python 3.9 or higher
-- 4GB RAM minimum
-- 5GB disk space
-
-# Verify installations
-docker --version          # Should be 20.10+
-docker compose version    # Should show V2
-python3 --version         # Should be 3.9+
-```
-
-### Installation Steps
-
-**1. Clone the Repository**
-```bash
-git clone https://github.com/yourusername/startup-data-stack.git
+git clone https://github.com/YOUR_USERNAME/startup-data-stack
 cd startup-data-stack
-```
-
-**2. Start Docker Services**
-```bash
-# Start PostgreSQL, Metabase, and Mock Stripe API
+# Add your Google credentials
 docker compose up -d
-
-# Wait for PostgreSQL to initialize
-sleep 20
-
-# Verify services are running
-docker compose ps
-# Should show: taskflow-production-db, mock-stripe-api, 
-#              taskflow-metabase, metabase-db
+# 15 minutes later: your data stack is live
 ```
 
-**3. Generate Sample Data**
-```bash
-# Install Python dependencies
-pip install -r seed-data/requirements.txt
-
-# Generate TaskFlow application data (users + events)
-python3 seed-data/generate_sample_data.py
-
-# Expected output:
-# ✓ Generated 500 users
-# ✓ Generated 9,396 events
+## 📊 Architecture
+```
+Google Sheets (user data) | Simulated Stripe API (payments data)
+    ↓ (Simulated Airbyte sync every 6 hours)
+PostgreSQL (taskflow_production)
+    ↓ (dbt transformations)
+Analytics Data Warehouse (8 models)
+    ↓ (SQL queries)
+Metabase Dashboards (25+ queries)
 ```
 
-**4. Sync Stripe Data**
+## Setup Steps
+
+1. **Clone repository**
 ```bash
-# Install sync script dependencies
-pip install requests psycopg2-binary
-
-# Sync payment data from Mock Stripe API
-python3 airbyte-scripts/sync_mock_stripe.py
-
-# Expected output:
-# ✓ Synced 200 customers
-# ✓ Synced 80 subscriptions
-# ✓ Synced 679 charges
-# ✓ Synced 679 invoices
+   git clone https://github.com/YOUR_USERNAME/startup-data-stack.git
+   cd startup-data-stack
 ```
 
-**5. Run dbt Transformations**
+2. **Get Google Sheets API credentials**
+   
+   Quick steps:
+   - Create Google Cloud project
+   - Enable Google Sheets API + Drive API
+   - Create service account → Download JSON credentials
+   - Save as `google-credentials.json` in project root
+   - Create "TaskFlow App Data" Google Sheet with `Users` and `Events` tabs
+   - Share sheet with service account email
+
+3. **Start the stack**
 ```bash
-# Install dbt
-pip install dbt-postgres
-
-# Run dbt models
-cd dbt
-dbt deps  # Install dependencies
-dbt run   # Execute transformations
-
-# Expected output:
-# Completed successfully
-# Done. PASS=10 WARN=0 ERROR=0
-
-cd ..
+   docker compose up -d
+   # Wait 60 seconds for all services to start
 ```
 
-**6. Access Metabase**
+4. **Populate Google Sheets** (one-time)
 ```bash
-# Metabase takes 2-3 minutes to fully start
-# Open in browser: http://localhost:3000
+   docker exec data-sync-service /app/entrypoint.sh populate-sheets
+   # Generates 500 sample users + 9,789 events
 ```
 
-### Initial Metabase Setup
-
-1. **Create Account**
-   - Open http://localhost:3000
-   - Email: any@example.com (local only, doesn't matter)
-   - Password: choose any password
-   - Company: Your Name
-
-2. **Connect to Database**
-   - Skip initial setup → Settings → Admin → Databases → Add Database
-   - **Database type:** PostgreSQL
-   - **Display name:** TaskFlow Analytics
-   - **Host:** taskflow-production-db
-   - **Port:** 5432
-   - **Database name:** taskflow_production
-   - **Username:** taskflow
-   - **Password:** taskflow_prod_pass
-   - Click "Save"
-
-3. **Sync Schemas**
-   - After saving, click "Sync database schema now"
-   - Wait for sync to complete
-   - You should see: `public`, `stripe`, and `analytics` schemas
-
-4. **Explore Data**
-   - Click "Browse Data" → TaskFlow Analytics
-   - Explore tables in `analytics` schema
-   - Start building dashboards!
-
----
-
-## 📖 Usage Guide
-
-### Daily Operations
-
-**Check Service Status**
+5. **Run initial sync**
 ```bash
-docker compose ps
-
-# All services should show "Up"
-# - taskflow-production-db
-# - mock-stripe-api
-# - taskflow-metabase
-# - metabase-db
+   docker exec data-sync-service /app/entrypoint.sh sync-only
+   # Syncs data and runs dbt transformations
 ```
 
-**View Logs**
+6. **Verify pipeline**
 ```bash
-# Metabase logs
-docker logs taskflow-metabase --tail 100
-
-# Mock Stripe API logs
-docker logs mock-stripe-api --tail 50
-
-# PostgreSQL logs
-docker logs taskflow-production-db --tail 50
+   docker exec taskflow-production-db psql -U taskflow -d taskflow_production -c "
+   SELECT COUNT(*) FROM analytics.fct_user_metrics;
+   "
+   # Should return: 500
 ```
 
-**Query Data Directly**
+7. **Access Metabase**
+   - Open: http://localhost:3000
+   - Create account (local only)
+   - Add database: `taskflow-production-db:5432/taskflow_production`
+   - Use queries from `metabase-queries/` folder
+   
+## ✅ Verification Checklist
+
+After setup, you should have:
+
+- ✅ **6 services running healthy** (`docker compose ps`)
+- ✅ **500 users** in Google Sheets & PostgreSQL
+- ✅ **9,789 events** synced
+- ✅ **200 Stripe customers** (generated from user emails)
+- ✅ **80 subscriptions** ($10,627 MRR)
+- ✅ **8 dbt models** (100% passing)
+- ✅ **Metabase** accessible at localhost:3000
+
+## 🏗️ What's Included
+
+### Services
+
+| Service | Port | Status Check | Description |
+|---------|------|--------------|-------------|
+| PostgreSQL | 5432 | `pg_isready` | Data warehouse |
+| Mock Stripe API | 5001 | `curl localhost:5001/health` | Simulated payment data |
+| Metabase | 3000 | `curl localhost:3000/api/health` | Business intelligence |
+| Data Sync Service | - | `docker logs data-sync-service` | Orchestrates syncs + dbt |
+| dbt Service | - | `docker exec dbt-service dbt --version` | Data transformations |
+
+### Data Models (dbt)
+
+**Staging Models** (cleaned raw data):
+- `stg_users` - User profiles with activation status
+- `stg_events` - Product usage events
+- `stg_stripe_customers` - Payment customer records
+- `stg_stripe_subscriptions` - Subscription details
+
+**Mart Models** (business metrics):
+- `fct_user_metrics` - User-level KPIs (500 rows)
+  - Activation status, engagement level, revenue, event counts
+- `fct_activation_funnel` - Conversion funnel (173 rows)
+  - Signup → Activation → Payment journey
+- `fct_revenue_attribution` - Revenue by customer (80 rows)
+  - Plan type, MRR, subscription status
+- `fct_mrr_by_month` - Monthly recurring revenue (8 rows)
+  - Growth trends, ARPU, customer counts
+
+### Metabase Queries
+
+7 production-ready SQL queries in [`metabase-queries/`](metabase-queries/):
+
+- **Executive Dashboard**
+  - Total MRR, paying customers, activation/conversion rates, growth charts
+  
+## 📖 Daily Usage
+
+### View Logs
 ```bash
-# Connect to PostgreSQL
-docker exec -it taskflow-production-db psql -U taskflow -d taskflow_production
-
-# Example queries:
-\dt public.*          # List TaskFlow tables
-\dt stripe.*          # List Stripe tables
-\dt analytics.*       # List analytics models
-
-SELECT COUNT(*) FROM users;
-SELECT COUNT(*) FROM stripe.subscriptions;
-SELECT COUNT(*) FROM analytics.fct_user_metrics;
-
-\q                    # Exit
+docker logs data-sync-service -f  # Sync progress
+docker logs mock-stripe-api -f    # API requests
+docker logs taskflow-metabase -f  # BI activity
 ```
 
-**Run dbt Manually**
+### Manual Data Sync
 ```bash
-cd dbt
+# Automatic sync runs every 6 hours
+# Trigger manually:
+docker exec data-sync-service /app/entrypoint.sh sync-only
+```
 
+### Run dbt Commands
+```bash
 # Run all models
-dbt run
+docker exec data-sync-service dbt run --project-dir /app/dbt
 
 # Run specific model
-dbt run --select fct_user_metrics
+docker exec data-sync-service dbt run --select fct_user_metrics --project-dir /app/dbt
 
 # Test data quality
-dbt test
+docker exec data-sync-service dbt test --project-dir /app/dbt
 
 # Generate documentation
-dbt docs generate
-dbt docs serve  # Opens at http://localhost:8080
-
-cd ..
+docker exec data-sync-service dbt docs generate --project-dir /app/dbt
 ```
 
-**Trigger Stripe Sync Manually**
+### Query Data Directly
 ```bash
-# Sync latest data from Mock Stripe API
-python3 airbyte-scripts/sync_mock_stripe.py
+# Interactive PostgreSQL session
+docker exec -it taskflow-production-db psql -U taskflow -d taskflow_production
 
-# Check what was synced
+# Run single query
 docker exec taskflow-production-db psql -U taskflow -d taskflow_production -c "
-SELECT 
-    'Customers' as table_name, COUNT(*) as records FROM stripe.customers
-UNION ALL
-SELECT 'Subscriptions', COUNT(*) FROM stripe.subscriptions
-UNION ALL
-SELECT 'Charges', COUNT(*) FROM stripe.charges
-UNION ALL
-SELECT 'Invoices', COUNT(*) FROM stripe.invoices;
+SELECT * FROM analytics.fct_user_metrics LIMIT 5;
 "
 ```
 
-### Automated Processes
-
-**Cron Job for Stripe Sync** (runs every 6 hours)
+### Stop Services
 ```bash
-# View current crontab
-crontab -l
-
-# Should show:
-# 0 */6 * * * cd /home/youruser/startup-data-stack && python3 airbyte-scripts/sync_mock_stripe.py >> /tmp/stripe-sync.log 2>&1
-
-# Check sync logs
-tail -f /tmp/stripe-sync.log
+docker compose down           # Stop (preserves data)
+docker compose restart        # Restart all services
+docker compose down -v        # ⚠️ Stop and DELETE all data
 ```
 
-**Schedule dbt Runs** (optional)
-```bash
-# Add to crontab
-crontab -e
-
-# Add this line for nightly dbt runs at 2 AM:
-0 2 * * * cd /home/youruser/startup-data-stack/dbt && dbt run >> /tmp/dbt-run.log 2>&1
+## 📁 Project Structure
 ```
+startup-data-stack/
+├── docker-compose.yml              # Service orchestration
+├── Dockerfile.sync                 # Data sync container
+├── docker-entrypoint-sync.sh       # Sync service entrypoint
+├── google-credentials.json         # Google API credentials (gitignored)
+│
+├── dbt/                            # Data transformations
+│   ├── models/
+│   │   ├── staging/               # Raw data cleaning (4 models)
+│   │   ├── marts/                 # Business metrics (4 models)
+│   │   └── schema.yml             # Model documentation
+│   ├── profiles.yml               # Database connection
+│   └── dbt_project.yml            # Project configuration
+│
+├── google-sheets-sync/             # Google Sheets integration
+│   ├── populate_google_sheets.py  # Generate sample data
+│   ├── sync_from_google_sheets.py # Sync to PostgreSQL
+│   └── requirements.txt
+│
+├── mock-airbyte-scripts/           # Stripe API sync
+│   ├── sync_mock_stripe.py        # Sync Stripe → PostgreSQL
+│   └── requirements.txt
+│
+├── mock-apis/                      # Mock data sources
+│   ├── Dockerfile
+│   ├── mock_stripe_api.py         # Flask API server
+│   └── requirements.txt
+|
+├── metabase-queries/               # BI dashboard queries
+│   ├── executive-01-total-mrr.sql
+│   ├── executive-02-paying-customers.sql
+│   ├── executive-03-activation-rate.sql
+│   ├── executive-04-conversion-rate.sql
+│   ├── executive-05-mrr-growth.sql
+│   ├── executive-06-activation-funnel.sql
+│   ├── executive-07-key-metrics-summary.sql
+│   ├── metabase-queries-README.md
 
----
 
-## 📈 Scalability
+**Common issues:**
 
-### Current Capacity
-- **Users:** Supports up to 100K users
-- **Events:** Handles millions of events
-- **Data Volume:** Optimized for <100GB
-- **Concurrent Queries:** 10-20 analysts
-- **Refresh Frequency:** Hourly to daily
+| Issue | Solution |
+|-------|----------|
+| "google-credentials.json not found" | Add file to project root, verify it's ~2.4KB |
+| "SSL error connecting to Google" | Disable firewall temporarily, or add firewall exception |
+| "No data in analytics tables" | Run `docker exec data-sync-service /app/entrypoint.sh sync-only` |
+| "Metabase not accessible" | Wait 2-3 minutes after startup, check `docker logs taskflow-metabase`. Check firewall. |
+| "Service unhealthy" | Usually safe to ignore if `curl localhost:PORT/health` works |
+| "Port 5432 already in use" | Stop system PostgreSQL: `sudo systemctl stop postgresql` |
 
----
 
-## Flexibility
+## 🛠️ Tech Stack
 
-**Easy Data Source Addition**
-```bash
-# Add a new source (e.g., Google Analytics, HubSpot)
-# 1. Create sync script in airbyte-scripts/
-# 2. Add staging models in dbt/models/staging/
-# 3. Update marts to include new data
-# 4. Run dbt
-```
+| Category | Technology | Version |
+|----------|-----------|---------|
+| Language | Python | 3.11 |
+| Database | PostgreSQL | 15 |
+| Orchestration | Docker Compose + Cron | - |
+| Transformations | dbt | 1.8.7 |
+| BI Platform | Metabase | 0.57.6 |
+| APIs | Flask, gspread, requests | Latest |
+| Simulated Technology | Stripe API, Airbyte Connectors |
 
-**Custom Metrics**
-```sql
--- Add new metric by creating dbt model
--- dbt/models/marts/fct_your_metric.sql
+## This project demonstrates:
 
-WITH your_data AS (
-    SELECT * FROM {{ ref('stg_source') }}
-)
-
-SELECT 
-    your_dimension,
-    your_calculation
-FROM your_data
-GROUP BY your_dimension
-```
-
----
-
-## 🚀 Deployment to Production
-
-### Option 1: Digital Ocean Droplet ($24/month)
-
-**Server Setup**
-```bash
-# SSH into your droplet
-ssh root@your-droplet-ip
-
-# Install Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sh get-docker.sh
-
-# Install Docker Compose
-apt install docker-compose-plugin -y
-
-# Clone repository
-git clone https://github.com/yourusername/startup-data-stack.git
-cd startup-data-stack
-
-# Set environment variables
-cp .env.example .env
-nano .env  # Update passwords for production
-
-# Start services
-docker compose up -d
-
-# Run initial data load
-pip3 install -r seed-data/requirements.txt
-python3 seed-data/generate_sample_data.py
-python3 airbyte-scripts/sync_mock_stripe.py
-
-# Setup dbt
-pip3 install dbt-postgres
-cd dbt && dbt run && cd ..
-```
-
-**Automated Backups**
-```bash
-# Create backup script
-cat > /root/backup.sh << 'SCRIPT'
-#!/bin/bash
-DATE=$(date +%Y%m%d_%H%M%S)
-docker exec taskflow-production-db pg_dump -U taskflow taskflow_production | gzip > /backups/backup_$DATE.sql.gz
-find /backups -name "backup_*.sql.gz" -mtime +7 -delete
-SCRIPT
-
-chmod +x /root/backup.sh
-
-# Schedule daily backups
-crontab -e
-# Add: 0 3 * * * /root/backup.sh
-```
-
-**Monitoring**
-```bash
-# Setup basic monitoring with Docker stats
-docker stats --no-stream
-
-# Monitor disk usage
-df -h
-
-# Check service health
-docker compose ps
-curl http://localhost:5001/health
-curl http://localhost:3000
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Services Won't Start
-
-**Problem:** Port already in use
-```bash
-# Check what's using the port
-sudo lsof -i :5432  # PostgreSQL
-sudo lsof -i :3000  # Metabase
-sudo lsof -i :5001  # Mock API
-
-# Stop conflicting service
-sudo systemctl stop postgresql  # If system PostgreSQL is running
-
-# Restart Docker services
-docker compose down
-docker compose up -d
-```
-
-**Problem:** Docker permission denied
-```bash
-# Add user to docker group
-sudo usermod -aG docker $USER
-newgrp docker
-
-# Restart Docker daemon
-sudo systemctl restart docker
-```
-
-### Data Sync Issues
-
-**Problem:** Stripe sync fails
-```bash
-# Check mock API is running
-curl http://localhost:5001/health
-
-# Check network connectivity
-docker exec taskflow-production-db ping -c 3 mock-stripe-api
-
-# Run sync with verbose output
-python3 airbyte-scripts/sync_mock_stripe.py 2>&1 | tee sync-debug.log
-```
-
-**Problem:** No data in Stripe tables
-```bash
-# Verify sync completed
-docker exec taskflow-production-db psql -U taskflow -d taskflow_production -c "
-SELECT COUNT(*) FROM stripe.customers;
-"
-
-# Re-run sync if needed
-python3 airbyte-scripts/sync_mock_stripe.py
-```
-
-### dbt Errors
-
-**Problem:** dbt can't connect to database
-```bash
-cd dbt
-
-# Test connection
-dbt debug
-
-# Check profiles.yml has correct credentials
-cat profiles.yml
-
-# Verify PostgreSQL is accessible
-docker exec taskflow-production-db pg_isready -U taskflow
-```
-
-**Problem:** Model compilation errors
-```bash
-# Run with verbose output
-dbt run --select your_model --debug
-
-# Check compiled SQL
-cat target/compiled/taskflow_analytics/models/marts/your_model.sql
-
-# Test SQL directly in PostgreSQL
-docker exec taskflow-production-db psql -U taskflow -d taskflow_production
-```
-
-### Metabase Issues
-
-**Problem:** Can't connect to database (Note: Firewalls may prohibit setting up Metabase)
-```bash
-# Verify PostgreSQL is running
-docker compose ps | grep taskflow-production-db
-
-# Test connection from Metabase container
-docker exec taskflow-metabase ping -c 3 taskflow-production-db
-
-# Check credentials in docker-compose.yml match what you entered in Metabase
-```
-
-**Problem:** No data in analytics schema
-```bash
-# Run dbt to create analytics tables
-cd dbt && dbt run && cd ..
-
-# Verify tables exist
-docker exec taskflow-production-db psql -U taskflow -d taskflow_production -c "\dt analytics.*"
-
-# Re-sync schema in Metabase
-# Settings → Admin → Databases → TaskFlow Analytics → Sync database schema now
-```
----
+✅ **Modern data stack architecture** (Extract, Load, Transform)  
+✅ **ELT pipeline** design patterns  
+✅ **Data modeling** with dbt (staging → marts)  
+✅ **Automated orchestration** with cron  
+✅ **Containerization** with Docker Compose  
+✅ **Infrastructure as code** (reproducible environments)  
+✅ **SQL-based analytics** (no Spark/Airflow complexity)  
+✅ **Business intelligence** with open-source tools  
+✅ **Version-controlled analytics** (Git + dbt)  
 
 ## 📝 License
 
-MIT License
-
-You're free to:
-- ✅ Use this for learning
-- ✅ Modify for your needs
-- ✅ Use in your portfolio
-- ✅ Share with others
-
----
+MIT License - Feel free to use this.
 
