@@ -31,7 +31,7 @@ If this is you, you need a rudimentary data stack - functional, accurate and che
 ✅ **Runs in 15 minutes** - `docker compose up -d` and you're live  
 ✅ **Costs $0** - Everything is open-source (PostgreSQL, dbt, Metabase)  
 ✅ **Answers real questions** - Pre-built metrics for activation, conversion, MRR, cohorts, LTV  
-✅ **Works with your tools** - Grabs your raw data from Google Sheets, pulls payments from a mocked-up Stripe API, and builds you a data warehouse
+✅ **Works with your tools** - Grabs your raw data from Google Sheets, pulls payments from a mocked-up Stripe API, and builds you a data warehouse  
 ✅ **Scales with you** - From 500 to 500K users without rewriting
 
 ![Executive Summary Dashboard - Table](assets/images/dashboard3.png)
