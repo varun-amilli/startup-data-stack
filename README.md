@@ -42,6 +42,15 @@ Employs modern data engineering practices. Built to showcase real-world SaaS dat
 
 **Everything runs in Docker containers** - just `docker compose up -d` and you're done.
 
+## Get Started
+```bash
+git clone https://github.com/YOUR_USERNAME/startup-data-stack
+cd startup-data-stack
+# Add your Google credentials
+docker compose up -d
+# 15 minutes later: your data stack is live
+```
+
 ## 📊 Architecture
 ```
 Google Sheets (user data) | Simulated Stripe API (payments data)
@@ -240,16 +249,16 @@ startup-data-stack/
 │   ├── executive-06-activation-funnel.sql
 │   ├── executive-07-key-metrics-summary.sql
 │   ├── metabase-queries-README.md
-
+```
 
 **Common issues:**
 
 | Issue | Solution |
 |-------|----------|
 | "google-credentials.json not found" | Add file to project root, verify it's ~2.4KB |
-| "SSL error connecting to Google" | Disable firewall temporarily, or add firewall exception |
+| "SSL error connecting to Google" | Add firewall exception |
 | "No data in analytics tables" | Run `docker exec data-sync-service /app/entrypoint.sh sync-only` |
-| "Metabase not accessible" | Wait 2-3 minutes after startup, check `docker logs taskflow-metabase`. Check firewall. |
+| "Metabase not accessible" | Wait 2-3 minutes after startup, check `docker logs taskflow-metabase`. Add firewall exception |
 | "Service unhealthy" | Usually safe to ignore if `curl localhost:PORT/health` works |
 | "Port 5432 already in use" | Stop system PostgreSQL: `sudo systemctl stop postgresql` |
 
@@ -264,7 +273,7 @@ startup-data-stack/
 | Transformations | dbt | 1.8.7 |
 | BI Platform | Metabase | 0.57.6 |
 | APIs | Flask, gspread, requests | Latest |
-| Simulated Technology | Stripe API, Airbyte Connectors |
+| Simulated Technology | Stripe API, Airbyte Connectors | - |
 
 ## This project demonstrates:
 
