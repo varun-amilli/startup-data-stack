@@ -22,11 +22,11 @@ If this is you, you need a rudimentary data stack - functional, accurate and che
 
 ## What This Project Gives You (Today)
 
-!(/assets/images/dashboard1.png)
+![Executive Summary Dashboard - Top](assets/images/dashboard1.png)
 
 **A complete, production-ready data stack, complete with visualizations.**
 
-!(/assets/images/dashboard2.png)
+![Executive Summary Dashboard - Middle](assets/images/dashboard2.png)
 
 ✅ **Runs in 15 minutes** - `docker compose up -d` and you're live  
 ✅ **Costs $0** - Everything is open-source (PostgreSQL, dbt, Metabase)  
@@ -34,7 +34,7 @@ If this is you, you need a rudimentary data stack - functional, accurate and che
 ✅ **Works with your tools** - Grabs your raw data from Google Sheets, pulls payments from a mocked-up Stripe API, and builds you a data warehouse
 ✅ **Scales with you** - From 500 to 500K users without rewriting
 
-!(/assets/images/dashboard3.png)
+![Executive Summary Dashboard - Table](assets/images/dashboard3.png)
 
 Employs modern data engineering practices. Built to showcase real-world SaaS data pipeline architecture with separation of application data and payment processing. Designed, constructed, and iteratively upgraded over 4 days with Claude.ai.
 
