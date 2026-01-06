@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 import random
 import hashlib
 import psycopg2
+import time
+import os
 
 app = Flask(__name__)
 CORS(app)
@@ -11,38 +13,54 @@ CORS(app)
 # Seed for consistent data
 random.seed(42)
 
-# Get real user emails from TaskFlow database
+# Get real user emails from TaskFlow database with retry logic
 def get_taskflow_user_emails():
     """Pull activated user emails from TaskFlow to create realistic matches"""
-    try:
-        conn = psycopg2.connect(
-            host="taskflow-production-db",
-            port=5432,
-            database="taskflow_production",
-            user="taskflow",
-            password="taskflow_prod_pass",
-            connect_timeout=5
-        )
-        cur = conn.cursor()
-        
-        # Get activated users (40% of them will become Stripe customers)
-        cur.execute("""
-            SELECT email, name, company 
-            FROM users 
-            WHERE activated_at IS NOT NULL 
-            ORDER BY RANDOM() 
-            LIMIT 200
-        """)
-        
-        results = cur.fetchall()
-        cur.close()
-        conn.close()
-        
-        return [(email, name, company) for email, name, company in results]
-    except Exception as e:
-        print(f"Warning: Could not connect to TaskFlow DB: {e}")
-        print("Falling back to generated emails")
-        return None
+    max_retries = 10
+    
+    for attempt in range(max_retries):
+        try:
+            conn = psycopg2.connect(
+                host=os.getenv('POSTGRES_HOST', 'taskflow-production-db'),
+                port=int(os.getenv('POSTGRES_PORT', '5432')),
+                database=os.getenv('POSTGRES_DB', 'taskflow_production'),
+                user=os.getenv('POSTGRES_USER', 'taskflow'),
+                password=os.getenv('POSTGRES_PASSWORD', 'taskflow_prod_pass'),
+                connect_timeout=5
+            )
+            cur = conn.cursor()
+            
+            # Get activated users (40% of them will become Stripe customers)
+            cur.execute("""
+                SELECT email, name, company 
+                FROM users 
+                WHERE activated_at IS NOT NULL 
+                ORDER BY RANDOM() 
+                LIMIT 200
+            """)
+            
+            results = cur.fetchall()
+            cur.close()
+            conn.close()
+            
+            if results:
+                print(f"✓ Connected to TaskFlow DB and found {len(results)} users")
+                return [(email, name, company) for email, name, company in results]
+            else:
+                print("⚠ No users found in database yet, using fallback data")
+                return None
+                
+        except Exception as e:
+            if attempt < max_retries - 1:
+                print(f"⚠ Attempt {attempt + 1}/{max_retries}: Cannot connect to TaskFlow DB yet: {e}")
+                print(f"  Retrying in 3 seconds...")
+                time.sleep(3)
+            else:
+                print(f"⚠ Could not connect to TaskFlow DB after {max_retries} attempts")
+                print(f"  Using fallback generated data")
+                return None
+    
+    return None
 
 # Generate customers using TaskFlow emails
 def generate_customers():
@@ -54,7 +72,8 @@ def generate_customers():
     
     if taskflow_users:
         # Use real TaskFlow user data
-        for i, (email, name, company) in enumerate(taskflow_users[:200]):
+        print(f"Generating {len(taskflow_users)} Stripe customers from TaskFlow users...")
+        for i, (email, name, company) in enumerate(taskflow_users):
             created = base_date + timedelta(days=random.randint(0, 180))
             customers.append({
                 'id': f'cus_{hashlib.md5(email.encode()).hexdigest()[:24]}',
@@ -71,6 +90,7 @@ def generate_customers():
             })
     else:
         # Fallback to generated data
+        print("Generating 200 Stripe customers with fallback data...")
         for i in range(200):
             created = base_date + timedelta(days=random.randint(0, 180))
             customers.append({
@@ -201,11 +221,20 @@ def generate_invoices(subscriptions):
     return invoices
 
 # Generate all data once at startup
-print("Generating Stripe data from TaskFlow users...")
+print("="*60)
+print("Mock Stripe API - Initializing...")
+print("="*60)
+
 CUSTOMERS = generate_customers()
 SUBSCRIPTIONS = generate_subscriptions(CUSTOMERS)
 CHARGES = generate_charges(SUBSCRIPTIONS)
 INVOICES = generate_invoices(SUBSCRIPTIONS)
+
+print(f"✓ Generated {len(CUSTOMERS)} customers")
+print(f"✓ Generated {len(SUBSCRIPTIONS)} subscriptions")
+print(f"✓ Generated {len(CHARGES)} charges")
+print(f"✓ Generated {len(INVOICES)} invoices")
+print("="*60)
 
 # API Endpoints
 @app.route('/v1/customers', methods=['GET'])
@@ -306,16 +335,8 @@ def health():
     })
 
 if __name__ == '__main__':
-    print("=" * 60)
-    print("Mock Stripe API Server")
-    print("=" * 60)
-    print(f"Customers: {len(CUSTOMERS)}")
-    print(f"Subscriptions: {len(SUBSCRIPTIONS)}")
-    print(f"Charges: {len(CHARGES)}")
-    print(f"Invoices: {len(INVOICES)}")
-    print("=" * 60)
-    print("Running on http://localhost:5001")
-    print("Health check: http://localhost:5001/health")
-    print("=" * 60)
+    print("Mock Stripe API Server - Ready")
+    print(f"Running on http://0.0.0.0:5001")
+    print(f"Health check: http://localhost:5001/health")
     
     app.run(host='0.0.0.0', port=5001, debug=False)

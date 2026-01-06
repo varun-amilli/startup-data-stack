@@ -1,0 +1,44 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies including SSL certificates
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    cron \
+    curl \
+    postgresql-client \
+    git \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && update-ca-certificates
+
+# Copy requirements file
+COPY google-sheets-sync/requirements.txt /app/google-sheets-sync-requirements.txt
+
+# Install Python dependencies including dbt and faker
+RUN pip install --no-cache-dir \
+    -r google-sheets-sync-requirements.txt \
+    requests \
+    psycopg2-binary \
+    dbt-core==1.8.7 \
+    dbt-postgres==1.8.2 \
+    faker==39.0.0
+
+# Copy all sync scripts and dbt project
+COPY google-sheets-sync /app/google-sheets-sync
+COPY mock-airbyte-scripts /app/mock-airbyte-scripts
+COPY dbt /app/dbt
+
+# Create log directory
+RUN mkdir -p /var/log/sync
+
+# Copy entrypoint script
+COPY docker-entrypoint-sync.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# Set dbt profiles dir
+ENV DBT_PROFILES_DIR=/app/dbt
+
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["cron-mode"]

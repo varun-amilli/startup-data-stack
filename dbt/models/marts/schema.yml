@@ -1,0 +1,62 @@
+models:
+  - name: fct_user_metrics
+    description: |
+      User-level metrics including activation status, engagement, and revenue.
+      One row per user with their complete profile and calculated KPIs.
+    columns:
+      - name: user_id
+        description: Unique user identifier
+        data_tests:
+          - unique
+          - not_null
+      - name: user_email
+        description: User email address
+      - name: is_activated
+        description: Whether user completed activation
+        data_tests:
+          - not_null
+      - name: is_paying
+        description: Whether user has active subscription
+      - name: total_events
+        description: Count of all user events
+      - name: engagement_level
+        description: High/Medium/Low based on event count
+
+  - name: fct_activation_funnel
+    description: |
+      Conversion funnel showing user journey from signup to payment.
+      Each row represents a funnel step with user counts.
+    columns:
+      - name: funnel_step
+        description: Step in conversion funnel (1-5)
+        data_tests:
+          - not_null
+      - name: user_count
+        description: Number of users reaching this step
+
+  - name: fct_revenue_attribution
+    description: |
+      Revenue attribution by customer and plan.
+      Links users to their subscription and payment details.
+    columns:
+      - name: user_id
+        description: User identifier
+        data_tests:
+          - not_null
+      - name: subscription_status
+        description: active, canceled, etc.
+
+  - name: fct_mrr_by_month
+    description: |
+      Monthly recurring revenue trends over time.
+      Aggregates MRR and customer counts by month.
+    columns:
+      - name: month
+        description: Month start date
+        data_tests:
+          - unique
+          - not_null
+      - name: total_mrr
+        description: Total MRR for the month
+      - name: paying_customers
+        description: Count of active paying customers

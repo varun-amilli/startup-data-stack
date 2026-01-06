@@ -1,12 +1,13 @@
 taskflow_analytics:
+  target: dev
   outputs:
     dev:
       type: postgres
-      host: localhost
+      host: "{{ env_var('POSTGRES_HOST', 'taskflow-production-db') }}"
+      user: "{{ env_var('POSTGRES_USER', 'taskflow') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD', 'taskflow_prod_pass') }}"
       port: 5432
-      user: taskflow
-      password: taskflow_prod_pass
-      database: taskflow_production
+      dbname: taskflow_production
       schema: analytics
       threads: 4
-  target: dev
+      keepalives_idle: 0

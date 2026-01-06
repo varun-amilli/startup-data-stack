@@ -15,11 +15,29 @@ build/
 dbt/target/
 dbt/dbt_packages/
 dbt/logs/
+dbt/.user.yml
 dbt/*.duckdb*
 *.duckdb*
 
 # Environment
 .env
+.env.*
+!.env.example
+
+# Google Credentials - CRITICAL!
+google-credentials.json
+*credentials*.json
+*.json
+!dbt/profiles.yml
+!dbt/dbt_project.yml
+!dbt/packages.yml
+!package.json
+!mock-apis/requirements.txt
+!google-sheets-sync/requirements.txt
+!mock-airbyte-scripts/requirements.txt
+
+# Logs
+logs/
 *.log
 
 # Docker
@@ -37,11 +55,11 @@ Thumbs.db
 .idea/
 *.sublime-*
 
-# Data files (don't commit large datasets)
+# Data files
 *.csv
 *.parquet
-data/*.duckdb*
+data/
 
-# Temporary files
+# Temporary
 /tmp/
 *.tmp
