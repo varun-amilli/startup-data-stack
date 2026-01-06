@@ -210,6 +210,17 @@ docker compose restart        # Restart all services
 docker compose down -v        # ⚠️ Stop and DELETE all data
 ```
 
+### Common issues
+
+| Issue | Solution |
+|-------|----------|
+| "google-credentials.json not found" | Add file to project root, verify it's ~2.4KB |
+| "SSL error connecting to Google" | Add firewall exception |
+| "No data in analytics tables" | Run `docker exec data-sync-service /app/entrypoint.sh sync-only` |
+| "Metabase not accessible" | Wait 2-3 minutes after startup, check `docker logs taskflow-metabase`. Add firewall exception |
+| "Service unhealthy" | Usually safe to ignore if `curl localhost:PORT/health` works |
+| "Port 5432 already in use" | Stop system PostgreSQL: `sudo systemctl stop postgresql` |
+
 ## 📁 Project Structure
 ```
 startup-data-stack/
@@ -220,24 +231,24 @@ startup-data-stack/
 │
 ├── dbt/                            # Data transformations
 │   ├── models/
-│   │   ├── staging/               # Raw data cleaning (4 models)
-│   │   ├── marts/                 # Business metrics (4 models)
-│   │   └── schema.yml             # Model documentation
-│   ├── profiles.yml               # Database connection
-│   └── dbt_project.yml            # Project configuration
+│   │   ├── staging/                # Raw data cleaning (4 models)
+│   │   ├── marts/                  # Business metrics (4 models)
+│   │   └── schema.yml              # Model documentation
+│   ├── profiles.yml                # Database connection
+│   └── dbt_project.yml             # Project configuration
 │
 ├── google-sheets-sync/             # Google Sheets integration
-│   ├── populate_google_sheets.py  # Generate sample data
-│   ├── sync_from_google_sheets.py # Sync to PostgreSQL
+│   ├── populate_google_sheets.py   # Generate sample data
+│   ├── sync_from_google_sheets.py  # Sync to PostgreSQL
 │   └── requirements.txt
 │
 ├── mock-airbyte-scripts/           # Stripe API sync
-│   ├── sync_mock_stripe.py        # Sync Stripe → PostgreSQL
+│   ├── sync_mock_stripe.py         # Sync Stripe → PostgreSQL
 │   └── requirements.txt
 │
 ├── mock-apis/                      # Mock data sources
 │   ├── Dockerfile
-│   ├── mock_stripe_api.py         # Flask API server
+│   ├── mock_stripe_api.py          # Flask API server
 │   └── requirements.txt
 |
 ├── metabase-queries/               # BI dashboard queries
@@ -250,18 +261,6 @@ startup-data-stack/
 │   ├── executive-07-key-metrics-summary.sql
 │   ├── metabase-queries-README.md
 ```
-
-**Common issues:**
-
-| Issue | Solution |
-|-------|----------|
-| "google-credentials.json not found" | Add file to project root, verify it's ~2.4KB |
-| "SSL error connecting to Google" | Add firewall exception |
-| "No data in analytics tables" | Run `docker exec data-sync-service /app/entrypoint.sh sync-only` |
-| "Metabase not accessible" | Wait 2-3 minutes after startup, check `docker logs taskflow-metabase`. Add firewall exception |
-| "Service unhealthy" | Usually safe to ignore if `curl localhost:PORT/health` works |
-| "Port 5432 already in use" | Stop system PostgreSQL: `sudo systemctl stop postgresql` |
-
 
 ## 🛠️ Tech Stack
 
