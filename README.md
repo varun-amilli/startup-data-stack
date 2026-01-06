@@ -42,15 +42,6 @@ Employs modern data engineering practices. Built to showcase real-world SaaS dat
 
 **Everything runs in Docker containers** - just `docker compose up -d` and you're done.
 
-## Get Started
-```bash
-git clone https://github.com/YOUR_USERNAME/startup-data-stack
-cd startup-data-stack
-# Add your Google credentials
-docker compose up -d
-# 15 minutes later: your data stack is live
-```
-
 ## 📊 Architecture
 ```
 Google Sheets (user data) | Simulated Stripe API (payments data)
