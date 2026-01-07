@@ -24,7 +24,7 @@ If this is you, you need a rudimentary data stack - functional, accurate and che
 
 ![Executive Summary Dashboard - Top](assets/images/dashboard1.png)
 
-**A complete, production-ready data stack, complete with visualizations.**
+**A full production-ready data stack, complete with visualizations.**
 
 ![Executive Summary Dashboard - Middle](assets/images/dashboard2.png)
 
@@ -41,15 +41,6 @@ Employs modern data engineering practices. Built to showcase real-world SaaS dat
 **Live Cost:** $0 (locally-hosted development) | **Production Cost:** ~$30-75/month (Airbyte API connectors, DigitalOcean droplet)
 
 **Everything runs in Docker containers** - just `docker compose up -d` and you're done.
-
-## Get Started
-```bash
-git clone https://github.com/YOUR_USERNAME/startup-data-stack
-cd startup-data-stack
-# Add your Google credentials
-docker compose up -d
-# 15 minutes later: your data stack is live
-```
 
 ## 📊 Architecture
 ```
